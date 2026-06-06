@@ -144,7 +144,7 @@ with st.sidebar:
     # Sidebar Dropdown Menu
     menu = st.selectbox(
         "Pilih Menu:",
-        ["📝 Input Form", "📊 Dashboard"],
+        ["📊 Dashboard", "📝 Input Form"],
         index=0
     )
 
@@ -160,8 +160,8 @@ if menu == "📝 Input Form":
         with st.expander("Detail Error"):
             st.code(connection_error)
 
-    # Input Form (Full Width)
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    # Page Position / Breadcrumb Card
+    st.markdown(f'<div class="glass-card">📍 <b>Posisi Saat Ini:</b> {menu}</div>', unsafe_allow_html=True)
     with st.form("document_input_form", clear_on_submit=True):
         st.markdown("### 📝 Tambah Dokumen Baru")
         
@@ -207,12 +207,13 @@ if menu == "📝 Input Form":
                     st.rerun()
                 except Exception as ex:
                     st.error(f"Gagal menyimpan data: {ex}")
-    st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 elif menu == "📊 Dashboard":
     st.markdown('<div class="main-header">Document Dashboard</div>', unsafe_allow_html=True)
     st.markdown('<div class="subheader-text">Analitik dan metrik dokumen pada database DC_DB</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="glass-card">📍 <b>Posisi Saat Ini:</b> {menu}</div>', unsafe_allow_html=True)
     
     if connection_error:
         st.error("❌ Gagal terhubung ke MotherDuck.")

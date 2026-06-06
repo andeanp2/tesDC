@@ -164,117 +164,117 @@ with st.sidebar:
 
 # Menu conditional rendering
 if menu == "📝 Input Form":
-    col1, col2 = st.columns([2, 3])
+    st.markdown('<div class="main-header">Document Control Portal</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subheader-text">Kelola dokumen secara efisien pada database DC_DB (Zona Waktu WIB)</div>', unsafe_allow_html=True)
+    
+    # Display Connection Warnings
+    if connection_error:
+        st.error("❌ Gagal terhubung ke MotherDuck.")
+        st.warning("Pastikan token MotherDuck telah diatur pada Streamlit Secrets atau Environment Variable `MOTHERDUCK_TOKEN`.")
+        with st.expander("Detail Error"):
+            st.code(connection_error)
+    else:
+        st.success("✅ Terkoneksi dengan MotherDuck online!")
 
-    with col1:
-        st.markdown('<div class="main-header">Document Form</div>', unsafe_allow_html=True)
-        st.markdown('<div class="subheader-text">Input data dokumen baru ke MotherDuck DC_DB (Zona Waktu WIB)</div>', unsafe_allow_html=True)
+    # Input Form (Full Width)
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    with st.form("document_input_form", clear_on_submit=True):
+        st.markdown("### 📝 Tambah Dokumen Baru")
         
-        # Display Connection Warnings
-        if connection_error:
-            st.error("❌ Gagal terhubung ke MotherDuck.")
-            st.warning("Pastikan token MotherDuck telah diatur pada Streamlit Secrets atau Environment Variable `MOTHERDUCK_TOKEN`.")
-            with st.expander("Detail Error"):
-                st.code(connection_error)
-        else:
-            st.success("✅ Terkoneksi dengan MotherDuck online!")
-
-        # Input Form
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        with st.form("document_input_form", clear_on_submit=True):
-            st.markdown("### 📝 Tambah Dokumen Baru")
-            
-            doc_id = st.text_input(
-                "Doc_ID",
-                placeholder="Contoh: DOC-2026-001",
-                help="Masukkan ID unik dokumen"
-            )
-            
-            doc_type = st.text_input(
-                "Doc_type",
-                placeholder="Contoh: SOP, WI, Form, Policy",
-                help="Jenis atau kategori dokumen"
-            )
-            
-            doc_name = st.text_input(
-                "Doc_name",
-                placeholder="Contoh: Standard Operating Procedure Penjualan",
-                help="Nama atau judul lengkap dokumen"
-            )
-            
-            submit_btn = st.form_submit_button("Simpan Data Dokumen", use_container_width=True)
-            
-            if submit_btn:
-                if not conn:
-                    st.error("Tidak dapat menyimpan data. Silakan hubungkan database terlebih dahulu.")
-                elif not doc_id.strip() or not doc_type.strip() or not doc_name.strip():
-                    st.warning("Semua field input (Doc_ID, Doc_type, Doc_name) wajib diisi!")
-                else:
-                    try:
-                        # Calculate input timestamp in WIB
-                        input_timestamp = datetime.now(WIB)
-                        
-                        # Insert data into MotherDuck table
-                        conn.execute(
-                            "INSERT INTO DC_DB.main.documents (doc_id, doc_type, doc_name, inserted_at) VALUES (?, ?, ?, ?)",
-                            (doc_id.strip(), doc_type.strip(), doc_name.strip(), input_timestamp)
-                        )
-                        
-                        st.toast("🎉 Data berhasil disimpan ke MotherDuck!", icon="✅")
-                        st.success(f"Data '{doc_name}' berhasil ditambahkan ke database!")
-                        # Trigger page reload to refresh table immediately
-                        st.rerun()
-                    except Exception as ex:
-                        st.error(f"Gagal menyimpan data: {ex}")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col2:
-        st.markdown('<div class="main-header">Database View</div>', unsafe_allow_html=True)
-        st.markdown('<div class="subheader-text">Data dokumen tersimpan di DC_DB.main.documents</div>', unsafe_allow_html=True)
+        doc_id = st.text_input(
+            "Doc_ID",
+            placeholder="Contoh: DOC-2026-001",
+            help="Masukkan ID unik dokumen"
+        )
         
-        # Load and display recent entries from DB
-        if conn:
-            try:
-                # Query the table
-                query_result = conn.execute("""
-                    SELECT 
-                        doc_id AS "Doc ID", 
-                        doc_type AS "Doc Type", 
-                        doc_name AS "Doc Name", 
-                        inserted_at AS "Timestamp (WIB)" 
-                    FROM DC_DB.main.documents 
-                    ORDER BY inserted_at DESC
-                """).df()
-                
-                if not query_result.empty:
-                    st.markdown(f"Total Dokumen: **{len(query_result)}**")
+        doc_type = st.text_input(
+            "Doc_type",
+            placeholder="Contoh: SOP, WI, Form, Policy",
+            help="Jenis atau kategori dokumen"
+        )
+        
+        doc_name = st.text_input(
+            "Doc_name",
+            placeholder="Contoh: Standard Operating Procedure Penjualan",
+            help="Nama atau judul lengkap dokumen"
+        )
+        
+        submit_btn = st.form_submit_button("Simpan Data Dokumen", use_container_width=True)
+        
+        if submit_btn:
+            if not conn:
+                st.error("Tidak dapat menyimpan data. Silakan hubungkan database terlebih dahulu.")
+            elif not doc_id.strip() or not doc_type.strip() or not doc_name.strip():
+                st.warning("Semua field input (Doc_ID, Doc_type, Doc_name) wajib diisi!")
+            else:
+                try:
+                    # Calculate input timestamp in WIB
+                    input_timestamp = datetime.now(WIB)
                     
-                    # Format timestamp column for display
-                    query_result['Timestamp (WIB)'] = pd.to_datetime(query_result['Timestamp (WIB)']).dt.strftime('%Y-%m-%d %H:%M:%S')
-                    
-                    # Search filter
-                    search_query = st.text_input("🔍 Cari dokumen (ID, Tipe, atau Nama):", placeholder="Ketik kata kunci...")
-                    if search_query:
-                        filtered_df = query_result[
-                            query_result['Doc ID'].str.contains(search_query, case=False, na=False) |
-                            query_result['Doc Type'].str.contains(search_query, case=False, na=False) |
-                            query_result['Doc Name'].str.contains(search_query, case=False, na=False)
-                        ]
-                    else:
-                        filtered_df = query_result
-                    
-                    # Render table
-                    st.dataframe(
-                        filtered_df,
-                        use_container_width=True,
-                        height=450
+                    # Insert data into MotherDuck table
+                    conn.execute(
+                        "INSERT INTO DC_DB.main.documents (doc_id, doc_type, doc_name, inserted_at) VALUES (?, ?, ?, ?)",
+                        (doc_id.strip(), doc_type.strip(), doc_name.strip(), input_timestamp)
                     )
+                    
+                    st.toast("🎉 Data berhasil disimpan ke MotherDuck!", icon="✅")
+                    st.success(f"Data '{doc_name}' berhasil ditambahkan ke database!")
+                    # Trigger page reload to refresh table immediately
+                    st.rerun()
+                except Exception as ex:
+                    st.error(f"Gagal menyimpan data: {ex}")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Database View (Full Width)
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown("### 🗃️ Daftar Dokumen Tersimpan")
+    
+    # Load and display recent entries from DB
+    if conn:
+        try:
+            # Query the table
+            query_result = conn.execute("""
+                SELECT 
+                    doc_id AS "Doc ID", 
+                    doc_type AS "Doc Type", 
+                    doc_name AS "Doc Name", 
+                    inserted_at AS "Timestamp (WIB)" 
+                FROM DC_DB.main.documents 
+                ORDER BY inserted_at DESC
+            """).df()
+            
+            if not query_result.empty:
+                st.markdown(f"Total Dokumen: **{len(query_result)}**")
+                
+                # Format timestamp column for display
+                query_result['Timestamp (WIB)'] = pd.to_datetime(query_result['Timestamp (WIB)']).dt.strftime('%Y-%m-%d %H:%M:%S')
+                
+                # Search filter
+                search_query = st.text_input("🔍 Cari dokumen (ID, Tipe, atau Nama):", placeholder="Ketik kata kunci...")
+                if search_query:
+                    filtered_df = query_result[
+                        query_result['Doc ID'].str.contains(search_query, case=False, na=False) |
+                        query_result['Doc Type'].str.contains(search_query, case=False, na=False) |
+                        query_result['Doc Name'].str.contains(search_query, case=False, na=False)
+                    ]
                 else:
-                    st.info("ℹ️ Belum ada data dokumen di database. Gunakan form di sebelah kiri untuk menginput data pertama.")
-            except Exception as e:
-                st.error(f"Gagal mengambil data dari database: {e}")
-        else:
-            st.warning("⚠️ Hubungkan database MotherDuck untuk melihat isi data dokumen.")
+                    filtered_df = query_result
+                
+                # Render table
+                st.dataframe(
+                    filtered_df,
+                    use_container_width=True,
+                    height=450
+                )
+            else:
+                st.info("ℹ️ Belum ada data dokumen di database. Gunakan form di atas untuk menginput data pertama.")
+        except Exception as e:
+            st.error(f"Gagal mengambil data dari database: {e}")
+    else:
+        st.warning("⚠️ Hubungkan database MotherDuck untuk melihat isi data dokumen.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 elif menu == "📊 Dashboard":
     st.markdown('<div class="main-header">Document Dashboard</div>', unsafe_allow_html=True)

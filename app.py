@@ -421,23 +421,77 @@ elif menu == "📋 Log Document":
                 st.markdown('<div class="glass-card">', unsafe_allow_html=True)
                 st.markdown("### 📋 Log Document Baru")
                 
-                # Doc ID selection (Placed outside the form to trigger immediate rerun on value change)
+                # Define lists for selectors
                 doc_ids = df_docs['doc_id'].tolist()
-                selected_doc_id = st.selectbox("Pilih Doc ID:", doc_ids, help="Pilih Doc ID dari dokumen yang terdaftar")
+                unique_types = sorted(list(set(df_docs['doc_type'].tolist())))
+                unique_names = sorted(list(set(df_docs['doc_name'].tolist())))
                 
-                # Find details for the selected doc ID
-                selected_row = df_docs[df_docs['doc_id'] == selected_doc_id].iloc[0]
+                # Initialize selected index in session state
+                if "doc_sel_idx" not in st.session_state or st.session_state.doc_sel_idx >= len(df_docs):
+                    st.session_state.doc_sel_idx = 0
+                
+                # Retrieve currently selected document row
+                selected_row = df_docs.iloc[st.session_state.doc_sel_idx]
+                doc_id_val = selected_row['doc_id']
                 doc_type_val = selected_row['doc_type']
                 doc_name_val = selected_row['doc_name']
                 
+                # Callbacks to sync index on selection changes
+                def update_by_id():
+                    val = st.session_state.sel_doc_id
+                    idx = df_docs[df_docs['doc_id'] == val].index[0]
+                    st.session_state.doc_sel_idx = int(idx)
+                    
+                def update_by_type():
+                    val = st.session_state.sel_doc_type
+                    idx = df_docs[df_docs['doc_type'] == val].index[0]
+                    st.session_state.doc_sel_idx = int(idx)
+                    
+                def update_by_name():
+                    val = st.session_state.sel_doc_name
+                    idx = df_docs[df_docs['doc_name'] == val].index[0]
+                    st.session_state.doc_sel_idx = int(idx)
+                
+                # Cross-linked selectors (Placed outside form to trigger callbacks immediately)
+                col_sel1, col_sel2, col_sel3 = st.columns(3)
+                with col_sel1:
+                    st.selectbox(
+                        "Pilih Doc ID:",
+                        options=doc_ids,
+                        key="sel_doc_id",
+                        index=doc_ids.index(doc_id_val),
+                        on_change=update_by_id,
+                        help="Memilih Doc ID akan menyinkronkan Tipe dan Nama Dokumen"
+                    )
+                with col_sel2:
+                    st.selectbox(
+                        "Pilih Document Type:",
+                        options=unique_types,
+                        key="sel_doc_type",
+                        index=unique_types.index(doc_type_val),
+                        on_change=update_by_type,
+                        help="Memilih tipe akan menampilkan dokumen pertama dengan tipe ini"
+                    )
+                with col_sel3:
+                    st.selectbox(
+                        "Pilih Document Name:",
+                        options=unique_names,
+                        key="sel_doc_name",
+                        index=unique_names.index(doc_name_val),
+                        on_change=update_by_name,
+                        help="Memilih nama akan menyinkronkan ID dan Tipe Dokumen"
+                    )
+                
                 # Form for revision log inputs
                 with st.form("log_document_form", clear_on_submit=True):
-                    # Auto-filled read-only fields
-                    col_t1, col_t2 = st.columns(2)
+                    # Show confirmation of selected values inside form (disabled inputs for reference)
+                    col_t1, col_t2, col_t3 = st.columns(3)
                     with col_t1:
-                        st.text_input("Document Type", value=doc_type_val, disabled=True, help="Otomatis terisi berdasarkan Doc ID")
+                        st.text_input("Doc ID Terpilih", value=doc_id_val, disabled=True)
                     with col_t2:
-                        st.text_input("Document Name", value=doc_name_val, disabled=True, help="Otomatis terisi berdasarkan Doc ID")
+                        st.text_input("Document Type Terpilih", value=doc_type_val, disabled=True)
+                    with col_t3:
+                        st.text_input("Document Name Terpilih", value=doc_name_val, disabled=True)
                     
                     revision_no = st.text_input("Revision No. ", placeholder="Contoh: Rev. 00, Rev. 01")
                     
@@ -468,7 +522,7 @@ elif menu == "📋 Log Document":
                                         revision_status, inserted_at
                                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                                 """, (
-                                    selected_doc_id, doc_type_val, doc_name_val, revision_no.strip(),
+                                    doc_id_val, doc_type_val, doc_name_val, revision_no.strip(),
                                     issue_date, revision_date,
                                     revision_description.strip(), distribution.strip(),
                                     revision_status, log_timestamp

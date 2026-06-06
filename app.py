@@ -144,12 +144,12 @@ with st.sidebar:
     # Sidebar Dropdown Menu
     menu = st.selectbox(
         "Pilih Menu:",
-        ["📊 Dashboard", "📝 Input Form"],
+        ["📊 Dashboard", "📝 Tambah Dokumen Baru"],
         index=0
     )
 
 # Menu conditional rendering
-if menu == "📝 Input Form":
+if menu == "📝 Tambah Dokumen Baru":
     st.markdown('<div class="main-header">Document Control Portal</div>', unsafe_allow_html=True)
     st.markdown('<div class="subheader-text">Kelola dokumen secara efisien pada database DC_DB (Zona Waktu WIB)</div>', unsafe_allow_html=True)
     

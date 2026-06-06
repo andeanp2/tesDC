@@ -356,7 +356,6 @@ if menu == "📝 Dokumen ":
 
 elif menu == "📊 Dashboard":
     st.markdown('<div class="main-header">Document Dashboard</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subheader-text">Analitik dan metrik dokumen pada database DC_DB</div>', unsafe_allow_html=True)
     st.markdown('<div class="glass-card"></div>', unsafe_allow_html=True)
     
     if connection_error:

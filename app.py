@@ -161,7 +161,7 @@ if menu == "📝 Input Form":
             st.code(connection_error)
 
     # Page Position / Breadcrumb Card
-    st.markdown(f'<div class="glass-card">📍 <b>Posisi Saat Ini:</b> {menu}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="glass-card">  {menu}</div>', unsafe_allow_html=True)
     with st.form("document_input_form", clear_on_submit=True):
         st.markdown("### 📝 Tambah Dokumen Baru")
         

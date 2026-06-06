@@ -181,6 +181,10 @@ if menu == "📝 Dokumen ":
     tab1, tab2, tab3 = st.tabs(["📝 Input Dokumen", "🗃️ Daftar Dokumen", "✏️ Edit Dokumen"])
     
     with tab1:
+        if "doc_success_msg" in st.session_state:
+            st.success(st.session_state["doc_success_msg"])
+            del st.session_state["doc_success_msg"]
+            
         st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         with st.form("document_input_form", clear_on_submit=True):
             st.markdown("### 📝 Tambah Dokumen Baru")
@@ -212,19 +216,28 @@ if menu == "📝 Dokumen ":
                     st.warning("Semua field input (Doc_ID, Doc_type, Doc_name) wajib diisi!")
                 else:
                     try:
-                        # Calculate input timestamp in WIB
-                        input_timestamp = datetime.now(WIB)
+                        # Check if doc_id already exists in database
+                        check_exist = conn.execute(
+                            "SELECT doc_id FROM DC_DB.main.documents WHERE doc_id = ?",
+                            (doc_id.strip(),)
+                        ).df()
                         
-                        # Insert data into MotherDuck table
-                        conn.execute(
-                            "INSERT INTO DC_DB.main.documents (doc_id, doc_type, doc_name, inserted_at) VALUES (?, ?, ?, ?)",
-                            (doc_id.strip(), doc_type.strip(), doc_name.strip(), input_timestamp)
-                        )
-                        
-                        st.toast("🎉 Data berhasil disimpan ke MotherDuck!", icon="✅")
-                        st.success(f"Data '{doc_name}' berhasil ditambahkan ke database!")
-                        # Trigger page reload to refresh table immediately
-                        st.rerun()
+                        if not check_exist.empty:
+                            st.warning(f"⚠️ Gagal menyimpan! Dokumen dengan Doc_ID '{doc_id.strip()}' sudah terdaftar di database.")
+                        else:
+                            # Calculate input timestamp in WIB
+                            input_timestamp = datetime.now(WIB)
+                            
+                            # Insert data into MotherDuck table
+                            conn.execute(
+                                "INSERT INTO DC_DB.main.documents (doc_id, doc_type, doc_name, inserted_at) VALUES (?, ?, ?, ?)",
+                                (doc_id.strip(), doc_type.strip(), doc_name.strip(), input_timestamp)
+                            )
+                            
+                            st.toast("🎉 Data berhasil disimpan ke MotherDuck!", icon="✅")
+                            st.session_state["doc_success_msg"] = f"Sukses! Data '{doc_name.strip()}' dengan Doc_ID '{doc_id.strip()}' berhasil ditambahkan ke database!"
+                            # Trigger page reload to refresh table immediately
+                            st.rerun()
                     except Exception as ex:
                         st.error(f"Gagal menyimpan data: {ex}")
         st.markdown('</div>', unsafe_allow_html=True)

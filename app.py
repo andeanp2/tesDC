@@ -113,7 +113,7 @@ def get_motherduck_connection(token=None):
     
     # Ensure database DC_DB exists and switch context to it
     conn.execute("CREATE DATABASE IF NOT EXISTS DC_DB;")
-    
+
     # Create target tables if they do not exist
     conn.execute("""
         CREATE TABLE IF NOT EXISTS DC_DB.main.documents (
@@ -131,8 +131,6 @@ def get_motherduck_connection(token=None):
             revision_no VARCHAR,
             issue_date DATE,
             revision_date DATE,
-            next_revision_date DATE,
-            days_due INTEGER,
             revision_description VARCHAR,
             distribution VARCHAR,
             revision_status VARCHAR,
@@ -443,22 +441,11 @@ elif menu == "📋 Log Document":
                     
                     revision_no = st.text_input("Revision No. ", placeholder="Contoh: Rev. 00, Rev. 01")
                     
-                    col_d1, col_d2, col_d3 = st.columns(3)
+                    col_d1, col_d2 = st.columns(2)
                     with col_d1:
                         issue_date = st.date_input("Issue Date", value=datetime.now(WIB).date())
                     with col_d2:
                         revision_date = st.date_input("Revision Date", value=datetime.now(WIB).date())
-                    with col_d3:
-                        next_revision_date = st.date_input("Date of Next Revision", value=datetime.now(WIB).date() + timedelta(days=365))
-                    
-                    # Calculate Days until Due/Days Overdue dynamically
-                    today = datetime.now(WIB).date()
-                    days_due = (next_revision_date - today).days
-                    if days_due >= 0:
-                        due_status_text = f"⏳ {days_due} hari lagi sebelum jatuh tempo (Due)"
-                    else:
-                        due_status_text = f"⚠️ Telah jatuh tempo selama {-days_due} hari (Overdue)"
-                    st.info(f"💡 Days until Due / Days Overdue: **{due_status_text}**")
                     
                     revision_description = st.text_area("Revision Description", placeholder="Masukkan deskripsi perubahan...")
                     distribution = st.text_input("Distribution", placeholder="Contoh: QC, QA, Production, HSE")
@@ -476,14 +463,14 @@ elif menu == "📋 Log Document":
                                 conn.execute("""
                                     INSERT INTO DC_DB.main.document_logs (
                                         doc_id, doc_type, doc_name, revision_no, 
-                                        issue_date, revision_date, next_revision_date, 
-                                        days_due, revision_description, distribution, 
+                                        issue_date, revision_date, 
+                                        revision_description, distribution, 
                                         revision_status, inserted_at
-                                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                                 """, (
                                     selected_doc_id, doc_type_val, doc_name_val, revision_no.strip(),
-                                    issue_date, revision_date, next_revision_date,
-                                    days_due, revision_description.strip(), distribution.strip(),
+                                    issue_date, revision_date,
+                                    revision_description.strip(), distribution.strip(),
                                     revision_status, log_timestamp
                                 ))
                                 st.toast("🎉 Log dokumen berhasil disimpan!", icon="✅")
@@ -507,8 +494,6 @@ elif menu == "📋 Log Document":
                         revision_no AS "Revision No.",
                         issue_date AS "Issue Date",
                         revision_date AS "Revision Date",
-                        next_revision_date AS "Date of Next Revision",
-                        days_due AS "Days until Due/Days Overdue",
                         revision_description AS "Revision Description",
                         distribution AS "Distribution",
                         revision_status AS "Revision Status"
@@ -522,7 +507,6 @@ elif menu == "📋 Log Document":
                     # Format date columns to string
                     query_logs['Issue Date'] = pd.to_datetime(query_logs['Issue Date']).dt.strftime('%Y-%m-%d')
                     query_logs['Revision Date'] = pd.to_datetime(query_logs['Revision Date']).dt.strftime('%Y-%m-%d')
-                    query_logs['Date of Next Revision'] = pd.to_datetime(query_logs['Date of Next Revision']).dt.strftime('%Y-%m-%d')
                     
                     # Search bar
                     search_log = st.text_input("🔍 Cari Log (Doc ID, Deskripsi, Status, dll):", placeholder="Ketik kata kunci pencarian...")

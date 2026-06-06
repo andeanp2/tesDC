@@ -316,6 +316,8 @@ if menu == "📝 Dokumen ":
                         new_doc_type = st.text_input("Doc_type", value=selected_doc_details['doc_type'])
                         new_doc_name = st.text_input("Doc_name", value=selected_doc_details['doc_name'])
                         
+                        confirm_delete = st.checkbox("Saya yakin ingin menghapus dokumen ini beserta seluruh log revisinya secara permanen")
+                        
                         col_btn1, col_btn2 = st.columns(2)
                         with col_btn1:
                             save_btn = st.form_submit_button("Simpan Perubahan", use_container_width=True)
@@ -339,13 +341,16 @@ if menu == "📝 Dokumen ":
                                 st.rerun()
                                 
                         if delete_btn:
-                            # Delete from both documents and logs to ensure clean database state
-                            conn.execute("DELETE FROM DC_DB.main.documents WHERE doc_id = ?", (selected_doc_id,))
-                            conn.execute("DELETE FROM DC_DB.main.document_logs WHERE doc_id = ?", (selected_doc_id,))
-                            
-                            st.toast("🗑️ Dokumen berhasil dihapus!", icon="✅")
-                            st.session_state["doc_success_msg"] = f"Sukses! Dokumen '{selected_doc_id}' beserta seluruh log revisinya berhasil dihapus dari database."
-                            st.rerun()
+                            if not confirm_delete:
+                                st.warning("⚠️ Konfirmasi Gagal: Silakan centang kotak konfirmasi sebelum menghapus dokumen!")
+                            else:
+                                # Delete from both documents and logs to ensure clean database state
+                                conn.execute("DELETE FROM DC_DB.main.documents WHERE doc_id = ?", (selected_doc_id,))
+                                conn.execute("DELETE FROM DC_DB.main.document_logs WHERE doc_id = ?", (selected_doc_id,))
+                                
+                                st.toast("🗑️ Dokumen berhasil dihapus!", icon="✅")
+                                st.session_state["doc_success_msg"] = f"Sukses! Dokumen '{selected_doc_id}' beserta seluruh log revisinya berhasil dihapus dari database."
+                                st.rerun()
             except Exception as e:
                 st.error(f"Gagal memuat form edit: {e}")
         else:

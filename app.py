@@ -8,8 +8,7 @@ from datetime import datetime, timezone, timedelta
 st.set_page_config(
     page_title="Document Control - DC_DB",
     page_icon="📝",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 # Custom Premium CSS for modern UI design (Dark/Light mode compliant)
@@ -62,28 +61,6 @@ st.markdown("""
             color: #475569;
         }
     }
-    
-    /* Badge styling */
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 12px;
-        border-radius: 9999px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-    
-    .status-connected {
-        background-color: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-        border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    
-    .status-disconnected {
-        background-color: rgba(239, 68, 68, 0.15);
-        color: #ef4444;
-        border: 1px solid rgba(239, 68, 68, 0.3);
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -129,51 +106,6 @@ def get_motherduck_connection(token=None):
     
     return conn
 
-# Sidebar - Configuration and Connection Status
-with st.sidebar:
-    st.image("https://img.icons8.com/fluent/96/database.png", width=64)
-    st.markdown("### Database Configuration")
-    st.write("Aplikasi ini terhubung ke database cloud **MotherDuck** (`DC_DB`).")
-    
-    # Token input interface if not set in environment
-    md_token_placeholder = ""
-    token_configured = False
-    
-    if "MOTHERDUCK_TOKEN" in st.secrets or os.environ.get("MOTHERDUCK_TOKEN"):
-        token_configured = True
-        st.markdown(
-            '<div class="status-badge status-connected">● Token Terdeteksi (Env/Secrets)</div>',
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            '<div class="status-badge status-disconnected">● Token Tidak Ditemukan</div>',
-            unsafe_allow_html=True
-        )
-        st.info("Masukkan token MotherDuck Anda di bawah ini untuk menghubungkan database.")
-        
-    user_token = st.text_input(
-        "MotherDuck Token",
-        value="",
-        type="password",
-        help="Dapatkan token Anda dari dashboard MotherDuck (motherduck.com)",
-        placeholder="Paste token md:... di sini"
-    )
-    
-    # Active Connection Check
-    active_token = user_token if user_token else None
-    
-    st.markdown("---")
-    st.markdown("### Panduan Deploy Streamlit Online")
-    st.markdown("""
-    Agar aplikasi terhubung otomatis saat dideploy secara online, tambahkan secret pada dashboard Streamlit Cloud:
-    
-    ```toml
-    # Di Streamlit Secrets
-    MOTHERDUCK_TOKEN = "your_actual_token_here"
-    ```
-    """)
-
 # Main Content Layout
 col1, col2 = st.columns([2, 3])
 
@@ -186,12 +118,12 @@ with col1:
     connection_error = None
     
     try:
-        conn = get_motherduck_connection(active_token)
+        conn = get_motherduck_connection()
         st.success("✅ Terkoneksi dengan MotherDuck online!")
     except Exception as e:
         connection_error = str(e)
         st.error("❌ Gagal terhubung ke MotherDuck.")
-        st.warning("Silakan periksa Token MotherDuck Anda di menu sidebar.")
+        st.warning("Pastikan token MotherDuck telah diatur pada Streamlit Secrets atau Environment Variable `MOTHERDUCK_TOKEN`.")
         with st.expander("Detail Error"):
             st.code(connection_error)
 

@@ -141,8 +141,8 @@ with st.sidebar:
     st.markdown("### Document Control Hub")
     st.write("Navigasi aplikasi dan status database:")
     
-    # Sidebar Radio Menu
-    menu = st.radio(
+    # Sidebar Dropdown Menu
+    menu = st.selectbox(
         "Pilih Menu:",
         ["📝 Input Form", "📊 Dashboard"],
         index=0
@@ -201,10 +201,6 @@ if menu == "📝 Input Form":
                 placeholder="Contoh: Standard Operating Procedure Penjualan",
                 help="Nama atau judul lengkap dokumen"
             )
-            
-            # WIB timestamp preview
-            current_wib = datetime.now(WIB)
-            st.caption(f"🕒 Timestamp input (WIB): **{current_wib.strftime('%Y-%m-%d %H:%M:%S')}**")
             
             submit_btn = st.form_submit_button("Simpan Data Dokumen", use_container_width=True)
             

@@ -183,19 +183,19 @@ if menu == "📝 Input Form":
         
         doc_id = st.text_input(
             "Doc_ID",
-            placeholder="Contoh: DOC-2026-001",
+            placeholder="Contoh: AWE-001",
             help="Masukkan ID unik dokumen"
         )
         
         doc_type = st.text_input(
             "Doc_type",
-            placeholder="Contoh: SOP, WI, Form, Policy",
+            placeholder="Contoh: Manual HACCP, Manual GMP ",
             help="Jenis atau kategori dokumen"
         )
         
         doc_name = st.text_input(
             "Doc_name",
-            placeholder="Contoh: Standard Operating Procedure Penjualan",
+            placeholder="Contoh: HACCP, PRP - GMP Guide",
             help="Nama atau judul lengkap dokumen"
         )
         
@@ -225,56 +225,6 @@ if menu == "📝 Input Form":
                     st.error(f"Gagal menyimpan data: {ex}")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Database View (Full Width)
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.markdown("### 🗃️ Daftar Dokumen Tersimpan")
-    
-    # Load and display recent entries from DB
-    if conn:
-        try:
-            # Query the table
-            query_result = conn.execute("""
-                SELECT 
-                    doc_id AS "Doc ID", 
-                    doc_type AS "Doc Type", 
-                    doc_name AS "Doc Name", 
-                    inserted_at AS "Timestamp (WIB)" 
-                FROM DC_DB.main.documents 
-                ORDER BY inserted_at DESC
-            """).df()
-            
-            if not query_result.empty:
-                st.markdown(f"Total Dokumen: **{len(query_result)}**")
-                
-                # Format timestamp column for display
-                query_result['Timestamp (WIB)'] = pd.to_datetime(query_result['Timestamp (WIB)']).dt.strftime('%Y-%m-%d %H:%M:%S')
-                
-                # Search filter
-                search_query = st.text_input("🔍 Cari dokumen (ID, Tipe, atau Nama):", placeholder="Ketik kata kunci...")
-                if search_query:
-                    filtered_df = query_result[
-                        query_result['Doc ID'].str.contains(search_query, case=False, na=False) |
-                        query_result['Doc Type'].str.contains(search_query, case=False, na=False) |
-                        query_result['Doc Name'].str.contains(search_query, case=False, na=False)
-                    ]
-                else:
-                    filtered_df = query_result
-                
-                # Render table
-                st.dataframe(
-                    filtered_df,
-                    use_container_width=True,
-                    height=450
-                )
-            else:
-                st.info("ℹ️ Belum ada data dokumen di database. Gunakan form di atas untuk menginput data pertama.")
-        except Exception as e:
-            st.error(f"Gagal mengambil data dari database: {e}")
-    else:
-        st.warning("⚠️ Hubungkan database MotherDuck untuk melihat isi data dokumen.")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 elif menu == "📊 Dashboard":
     st.markdown('<div class="main-header">Document Dashboard</div>', unsafe_allow_html=True)

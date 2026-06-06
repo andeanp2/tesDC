@@ -139,7 +139,7 @@ except Exception as e:
 with st.sidebar:
     st.image("https://img.icons8.com/fluent/96/document.png", width=64)
     st.markdown("### Document Control Hub")
-    st.write("Navigasi aplikasi dan status database:")
+    st.write("Navigasi aplikasi:")
     
     # Sidebar Dropdown Menu
     menu = st.selectbox(
@@ -147,20 +147,6 @@ with st.sidebar:
         ["📝 Input Form", "📊 Dashboard"],
         index=0
     )
-    
-    st.markdown("---")
-    st.markdown("#### Database Status:")
-    if conn:
-        st.markdown(
-            '<div class="status-badge status-connected">● Connected to MotherDuck</div>',
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            '<div class="status-badge status-disconnected">● Connection Error</div>',
-            unsafe_allow_html=True
-        )
-        st.caption("Periksa secrets/environment token Anda.")
 
 # Menu conditional rendering
 if menu == "📝 Input Form":
@@ -173,8 +159,6 @@ if menu == "📝 Input Form":
         st.warning("Pastikan token MotherDuck telah diatur pada Streamlit Secrets atau Environment Variable `MOTHERDUCK_TOKEN`.")
         with st.expander("Detail Error"):
             st.code(connection_error)
-    else:
-        st.success("✅ Terkoneksi dengan MotherDuck online!")
 
     # Input Form (Full Width)
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
